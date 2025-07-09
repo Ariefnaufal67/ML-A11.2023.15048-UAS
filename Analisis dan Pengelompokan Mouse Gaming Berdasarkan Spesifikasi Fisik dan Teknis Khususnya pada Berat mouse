@@ -1,0 +1,183 @@
+# Dokumentasi Proyek Analisis Mouse Gaming
+
+*   **Nama:** Arief Naufal Al Azmi
+*   **NIM:** A11.2023.15048
+
+#  Analisis dan Pengelompokan Mouse Gaming Berdasarkan Spesifikasi Fisik dan Teknis Khususnya pada Berat mouse
+
+
+
+## 1. Ringkasan dan Permasalahan Proyek + Tujuan yang akan Dicapai + Model / Alur Penyelesaian
+
+### Ringkasan dan Permasalahan Proyek
+Proyek ini bertujuan untuk menganalisis dan mengelompokkan berbagai jenis mouse gaming berdasarkan karakteristik fisik (seperti panjang, lebar, tinggi, dan berat) serta spesifikasi teknis (seperti DPI, polling rate, dan jenis sensor). Dalam pasar mouse gaming yang sangat kompetitif, konsumen seringkali kesulitan memilih mouse yang paling sesuai dengan preferensi dan kebutuhan mereka. Produsen juga menghadapi tantangan dalam mengidentifikasi segmen pasar yang spesifik untuk pengembangan produk baru. Permasalahan utama adalah kurangnya pemahaman yang terstruktur mengenai bagaimana berbagai fitur mouse berkorelasi dan bagaimana mouse dapat dikelompokkan secara alami berdasarkan karakteristik ini.
+
+### Tujuan yang akan Dicapai
+*   **Memahami Distribusi Data:** Menganalisis distribusi dan statistik deskriptif dari berbagai fitur mouse gaming.
+*   **Mengidentifikasi Korelasi Fitur:** Menemukan hubungan antar fitur fisik dan teknis mouse.
+*   **Mengelompokkan Mouse:** Melakukan pengelompokan (clustering) mouse berdasarkan fitur-fitur yang relevan, khususnya berat, untuk mengidentifikasi segmen mouse yang berbeda.
+*   **Mengevaluasi Performa Model:** Menilai seberapa baik model clustering dapat mengelompokkan data.
+*   **Memberikan Insight:** Menyediakan wawasan yang dapat membantu konsumen dalam memilih mouse dan produsen dalam mengembangkan produk.
+
+### Model / Alur Penyelesaian (Bagan)
+
+```mermaid
+graph TD
+    A[Mulai] --> B{Pengumpulan Data};
+    B --> C[Pemuatan Data (mouse_db.csv)];
+    C --> D[Eksplorasi Data Awal (df.head(), df.tail(), df.info(), df.describe(), df.dtypes)];
+    D --> E{Pembersihan & Pra-pemrosesan Data};
+    E --> F[Penanganan Missing Values];
+    F --> G[Konversi Tipe Data (Numerik)];
+    G --> H[Analisis Data Eksploratif (EDA) Lanjutan];
+    H --> I[Visualisasi Distribusi Fitur (Histogram, Box Plot)];
+    I --> J[Analisis Korelasi];
+    J --> K{Pemilihan Fitur untuk Clustering};
+    K --> L[Scaling Fitur];
+    L --> M[Penerapan Algoritma Clustering (K-Means berdasarkan Berat)];
+    M --> N[Evaluasi Model Clustering];
+    N --> O[Interpretasi Hasil Clustering];
+    O --> P[Diskusi Hasil & Kesimpulan];
+    P --> Q[Selesai];
+```
+
+## 2. Penjelasan Dataset, EDA dan Proses Features Dataset
+
+### Penjelasan Dataset
+Dataset yang digunakan adalah `2025_06_15_MousedB.csv`. Dataset ini berisi informasi detail mengenai berbagai mouse gaming, mencakup dimensi fisik, berat, bentuk, penempatan hump, flare depan, kelengkungan samping, kompatibilitas tangan, sandaran jempol, sandaran jari manis, material, konektivitas, sensor, teknologi sensor, posisi sensor, DPI, polling rate, kecepatan tracking (IPS), akselerasi (G), serta jumlah tombol samping dan tombol tengah.
+
+**Kolom-kolom Penting:**
+*   **Brand:** Merek mouse.
+*   **Name:** Nama model mouse.
+*   **Length (mm):** Panjang mouse dalam milimeter.
+*   **Width (mm):** Lebar mouse dalam milimeter.
+*   **Height (mm):** Tinggi mouse dalam milimeter.
+*   **Weight (g):** Berat mouse dalam gram.
+*   **Shape:** Bentuk mouse (Ergonomic, Symmetrical, dll.).
+*   **DPI:** Dots Per Inch, sensitivitas sensor.
+*   **Polling rate:** Frekuensi pelaporan posisi mouse ke komputer.
+*   **Tracking speed (IPS):** Kecepatan tracking maksimum.
+*   **Acceleration (G):** Akselerasi maksimum yang dapat ditangani sensor.
+*   **Side buttons:** Jumlah tombol samping.
+*   **Middle buttons:** Jumlah tombol tengah.
+
+### EDA (Exploratory Data Analysis)
+*   **Pemuatan Data:** Data dimuat menggunakan `pd.read_csv('2025_06_15_MousedB.csv', sep=';')`.
+*   **Inspeksi Awal:**
+    *   `df.head()` dan `df.tail()` digunakan untuk melihat 5 baris pertama dan terakhir data, memberikan gambaran sekilas tentang struktur dan isi data.
+    *   `df.info()` memberikan ringkasan DataFrame, termasuk jumlah entri non-null dan tipe data untuk setiap kolom. Terlihat ada 1038 entri. Beberapa kolom seperti `Weight (g)`, `DPI`, `Polling rate`, `Tracking speed (IPS)`, `Acceleration (G)`, `Side buttons`, dan `Middle buttons` terdeteksi sebagai `object` padahal seharusnya numerik. Kolom `Hand compatibility`, `Material`, `Sensor technology`, dan `Polling rate` memiliki nilai null.
+    *   `df.describe()` memberikan statistik deskriptif untuk kolom numerik (`Length (mm)`, `Width (mm)`, `Height (mm)`).
+    *   `df.dtypes` mengkonfirmasi tipe data setiap kolom.
+*   **Pengecekan Duplikasi:** `df.duplicated().sum()` menunjukkan tidak ada baris duplikat dalam dataset (hasil: 0).
+*   **Pengecekan Missing Values:** `df.isnull().sum()` dan `df.isnull().sum().sum()` menunjukkan adanya missing values pada kolom `Hand compatibility`, `Material`, `Sensor technology`, dan `Polling rate`. Total missing values adalah 152.
+
+### Proses Features Dataset
+*   **Konversi Tipe Data:** Kolom-kolom yang seharusnya numerik namun terdeteksi sebagai `object` (`Weight (g)`, `DPI`, `Polling rate`, `Tracking speed (IPS)`, `Acceleration (G)`, `Side buttons`, `Middle buttons`) dikonversi ke tipe data numerik menggunakan `pd.to_numeric(df[col], errors='coerce')`. Parameter `errors='coerce'` akan mengubah nilai yang tidak dapat dikonversi menjadi `NaN` (Not a Number), yang akan ditangani pada langkah selanjutnya.
+
+## 3. Proses Learning / Modeling (Clustering berdasarkan berat)
+
+Untuk proses clustering, kita akan fokus pada pengelompokan mouse berdasarkan beratnya. Meskipun instruksi hanya menyebutkan "berat", dalam praktiknya, clustering biasanya melibatkan beberapa fitur untuk mendapatkan kelompok yang lebih bermakna. Namun, jika fokusnya hanya pada berat, kita bisa mengelompokkan mouse ke dalam kategori berat yang berbeda.
+
+**Langkah-langkah:**
+
+1.  **Penanganan Missing Values (setelah konversi tipe data):**
+    *   Setelah konversi tipe data, beberapa kolom numerik mungkin memiliki `NaN` jika ada nilai non-numerik yang tidak dapat di-coerce. Missing values pada kolom numerik ini perlu ditangani, misalnya dengan imputasi (mean, median) atau penghapusan baris. Untuk tujuan clustering berdasarkan berat, kita akan memastikan kolom 'Weight (g)' bersih dari NaN.
+
+2.  **Pemilihan Fitur:**
+    *   Fitur utama yang akan digunakan untuk clustering adalah `Weight (g)`.
+
+3.  **Scaling Fitur (Opsional, tetapi direkomendasikan untuk clustering):**
+    *   Meskipun hanya satu fitur, scaling dapat membantu jika kita ingin membandingkan distribusi berat dalam konteks yang lebih luas atau jika nanti akan ditambahkan fitur lain dengan skala yang berbeda. Namun, untuk clustering sederhana berdasarkan satu fitur numerik, dampaknya mungkin tidak signifikan dibandingkan dengan clustering multi-dimensi.
+
+4.  **Penentuan Jumlah Klaster (K):**
+    *   Untuk clustering berdasarkan berat, kita bisa menentukan jumlah klaster (K) secara intuitif (misalnya, mouse ringan, sedang, berat) atau menggunakan metode seperti Elbow Method jika ada rentang berat yang jelas.
+
+5.  **Penerapan Algoritma Clustering (K-Means):**
+    *   Algoritma K-Means akan digunakan untuk mengelompokkan mouse berdasarkan nilai `Weight (g)`.
+
+**Contoh Implementasi (Pseudo-code):**
+
+```python
+# 1. Penanganan Missing Values pada 'Weight (g)'
+# Misalnya, mengisi NaN dengan median atau menghapus baris yang memiliki NaN pada kolom ini
+df['Weight (g)'].fillna(df['Weight (g)'].median(), inplace=True)
+
+# 2. Pemilihan Fitur
+X = df[['Weight (g)']]
+
+# 3. Scaling Fitur (jika diperlukan)
+ from sklearn.preprocessing import StandardScaler
+ scaler = StandardScaler()
+ X_scaled = scaler.fit_transform(X)
+
+# 4. Penentuan Jumlah Klaster (K)
+# Misal, kita ingin 3 klaster: ringan, sedang, berat
+k = 3
+
+# 5. Penerapan K-Means
+ from sklearn.cluster import KMeans
+ kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+ # n_init untuk menghindari masalah inisialisasi
+ df['Weight_Cluster'] = kmeans.fit_predict(X)
+
+# Visualisasi hasil clustering (misalnya dengan histogram atau box plot per klaster)
+ sns.histplot(data=df, x='Weight (g)', hue='Weight_Cluster', multiple='stack')
+ plt.title('Distribusi Berat Mouse per Klaster')
+ plt.show()
+```
+
+## 4. Performa Model
+
+Untuk model clustering seperti K-Means, performa tidak diukur dengan metrik akurasi seperti pada model klasifikasi. Sebaliknya, metrik yang digunakan menilai kualitas pengelompokan internal data.
+
+**Metrik Performa Umum untuk Clustering:**
+
+*   **Inertia (Within-cluster Sum of Squares):** Mengukur seberapa rapat titik-titik data dalam satu klaster. Nilai yang lebih rendah menunjukkan klaster yang lebih padat. Ini adalah metrik yang dioptimalkan oleh K-Means.
+*   **Silhouette Score:** Mengukur seberapa mirip sebuah objek dengan klaster sendiri (kohesi) dibandingkan dengan klaster tetangga (separasi). Nilai berkisar antara -1 hingga 1.
+    *   Nilai mendekati 1: Objek berada jauh dari klaster tetangga.
+    *   Nilai mendekati 0: Objek berada di perbatasan antara dua klaster.
+    *   Nilai mendekati -1: Objek mungkin telah ditetapkan ke klaster yang salah.
+*   **Davies-Bouldin Index:** Mengukur rasio rata-rata antara dispersi intra-klaster dan jarak antar-klaster. Nilai yang lebih rendah menunjukkan pengelompokan yang lebih baik.
+
+**Contoh Evaluasi (Pseudo-code):**
+
+```python
+# Setelah menjalankan K-Means
+ print(f"Inertia: {kmeans.inertia_}")
+
+ from sklearn.metrics import silhouette_score
+ if len(df['Weight_Cluster'].unique()) > 1: # Silhouette score requires more than 1 cluster
+     print(f"Silhouette Score: {silhouette_score(X, df['Weight_Cluster'])}")
+
+ from sklearn.metrics import davies_bouldin_score
+ if len(df['Weight_Cluster'].unique()) > 1: # Davies-Bouldin score requires more than 1 cluster
+     print(f"Davies-Bouldin Index: {davies_bouldin_score(X, df['Weight_Cluster'])}")
+```
+
+## 5 . Diskusi Hasil dan Kesimpulan
+
+### Diskusi Hasil
+
+Berdasarkan analisis awal (EDA), kita telah mengidentifikasi beberapa poin penting:
+*   **Kualitas Data:** Dataset memiliki 1038 entri dengan beberapa kolom yang memerlukan pembersihan dan konversi tipe data, terutama kolom numerik yang terdeteksi sebagai `object`. Missing values juga teridentifikasi dan perlu ditangani.
+*   **Distribusi Dimensi Fisik:** `df.describe()` memberikan gambaran tentang rentang panjang, lebar, dan tinggi mouse. Misalnya, panjang mouse bervariasi dari 72.3 mm hingga 144.5 mm, menunjukkan variasi ukuran yang signifikan.
+*   **Potensi Clustering:** Dengan mengelompokkan mouse berdasarkan berat, kita dapat mengidentifikasi segmen-segmen seperti "mouse ringan", "mouse sedang", dan "mouse berat". Setiap segmen ini mungkin memiliki karakteristik lain yang unik (misalnya, mouse ringan seringkali dikaitkan dengan gaming kompetitif, sementara mouse berat mungkin menawarkan lebih banyak fitur atau baterai yang lebih besar).
+
+Hasil dari proses clustering (misalnya, K-Means) akan menunjukkan:
+*   **Pusat Klaster:** Nilai rata-rata berat untuk setiap klaster. Ini akan secara jelas mendefinisikan rentang berat untuk setiap kategori (ringan, sedang, berat).
+*   **Distribusi Klaster:** Jumlah mouse di setiap klaster. Ini akan menunjukkan seberapa merata distribusi mouse di antara kategori berat yang berbeda.
+*   **Karakteristik Klaster:** Dengan menganalisis fitur lain (seperti DPI, Polling Rate, atau jumlah tombol) dalam setiap klaster berat, kita dapat menemukan pola. Misalnya, apakah mouse ringan cenderung memiliki DPI yang lebih tinggi atau lebih sedikit tombol samping?
+
+### Kesimpulan
+
+Proyek ini berhasil melakukan eksplorasi awal dan pra-pemrosesan data mouse gaming. Dengan fokus pada clustering berdasarkan berat, kita dapat mengelompokkan mouse ke dalam kategori yang bermakna. Pengelompokan ini memberikan wawasan yang berharga bagi:
+*   **Konsumen:** Membantu dalam menyaring pilihan mouse berdasarkan preferensi berat, yang seringkali menjadi faktor penting dalam kenyamanan dan gaya bermain.
+*   **Produsen:** Mengidentifikasi celah pasar atau tren dalam segmen berat tertentu, memungkinkan pengembangan produk yang lebih terfokus dan strategi pemasaran yang lebih efektif.
+
+**Langkah Selanjutnya (Potensi Pengembangan):**
+*   **Clustering Multi-fitur:** Melakukan clustering menggunakan kombinasi fitur fisik (panjang, lebar, tinggi, berat) dan teknis (DPI, polling rate) untuk mendapatkan pengelompokan yang lebih kompleks dan nuansa.
+*   **Analisis Korelasi Lanjutan:** Menggunakan heatmap korelasi untuk memahami hubungan antar semua fitur.
+*   **Visualisasi Interaktif:** Membuat visualisasi interaktif untuk memungkinkan pengguna menjelajahi klaster dan fitur mouse secara dinamis.
+*   **Model Rekomendasi:** Mengembangkan sistem rekomendasi mouse berdasarkan preferensi pengguna.
+
+---
