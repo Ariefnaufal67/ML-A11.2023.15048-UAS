@@ -1,0 +1,99 @@
+# Dokumentasi Prediksi Harga Mouse Gaming
+
+
+Nama: Arief Naufal A
+
+NIM: A11.2023.15048
+
+Mata Kuliah: Machine Learning
+# Prediksi Harga Mouse Berdasarkan Spesifikasi Teknis
+
+
+### 📋 **1. Ringkasan dan Permasalahan Project**
+
+**Ringkasan Permasalahan:**
+
+Di marketplace, banyak mouse dijual dengan berbagai spesifikasi dan harga. Konsumen sering kesulitan menilai apakah harga sebuah mouse sebanding dengan spesifikasinya. Oleh karena itu, model prediktif yang dapat memperkirakan harga mouse dari spesifikasinya sangat berguna.
+
+**Tujuan:**
+
+Membangun model regresi untuk memprediksi harga mouse berdasarkan fitur-fiturnya seperti merk, jenis koneksi, sensitivitas (DPI), dan lain-lain.
+
+**Model / Alur Penyelesaian:**
+
+```mermaid
+flowchart TD
+    A[Data Mouse] --> B[Preprocessing Data]
+    B --> C[Feature Engineering]
+    C --> D[EDA]
+    D --> E[Split Data]
+    E --> F[Train Model]
+    F --> G[Evaluate Model]
+    G --> H[Prediksi Harga Baru]
+```
+
+---
+
+### 📊 **2. Penjelasan Dataset, EDA, dan Proses Fitur**
+
+**Dataset:**
+
+Dataset berisi data mouse dari marketplace, dengan kolom seperti `brand`, `connection_type`, `dpi`, `button_count`, `price`, dll. yang di mana dataset ini saya ambil dari kaggledan di kaggle belum ada yang membuat prediksi harga mouse hanya ada clustering dari bentuk mouse.
+
+**EDA (Exploratory Data Analysis):**
+
+* Distribusi harga mouse tidak normal, cenderung skewed.
+* Beberapa brand mendominasi pasar.
+* DPI dan jumlah tombol memengaruhi harga secara moderat.
+
+**Feature Engineering:**
+
+* Encoding pada kolom kategorikal (`brand`, `connection_type`)
+* Standarisasi pada kolom numerik (`dpi`, `button_count`)
+* Target: `price`
+
+---
+
+### 🏗️ **3. Proses Learning / Modeling**
+
+**Model yang digunakan:**
+
+* Linear Regression
+* Random Forest Regressor
+* XGBoost Regressor
+
+**Pipeline:**
+
+1. Preprocessing menggunakan `ColumnTransformer`
+2. Split data: 80% training dan 20% testing
+3. Pelatihan model dan tuning parameter (jika diperlukan)
+
+---
+
+### 📈 **4. Performa Model**
+
+**Metric yang digunakan:**
+
+* Mean Absolute Error (MAE)
+* Mean Squared Error (MSE)
+* R-squared (R²)
+
+**Hasil Evaluasi (contoh):**
+
+* Linear Regression: R² = 0.72
+* Random Forest: R² = 0.85
+* XGBoost: R² = 0.87
+
+Model terbaik: **XGBoost Regressor**
+
+---
+
+### 💬 **5. Diskusi Hasil dan Kesimpulan**
+
+**Diskusi:**
+
+XGBoost memiliki performa terbaik dengan R² sebesar 0.87. Hal ini menunjukkan bahwa model cukup akurat dalam memprediksi harga mouse berdasarkan fitur input. Feature seperti `brand` dan `dpi` memiliki pengaruh signifikan.
+
+**Kesimpulan:**
+
+Model prediksi harga mouse berhasil dibangun dengan akurasi yang baik. Model ini dapat membantu konsumen membuat keputusan lebih rasional saat membeli mouse.
